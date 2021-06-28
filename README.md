@@ -1,5 +1,5 @@
 # LineDrawer
-A simple too for drawing anti-aliased lines in Unity, similar to Handles.DrawAAPolyLine but not a gizmo. 
+A simple tool for drawing anti-aliased lines in Unity, similar to Handles.DrawAAPolyLine but not a gizmo. 
 
 I made this because I wanted to reproduce the functionality of Handles.DrawAAPolyLine but not just in Gizmos. Unity's LineRenderer is not really any good to me: I find it cumbersome and it doesn't render at a consistent width in screen space. 
 
