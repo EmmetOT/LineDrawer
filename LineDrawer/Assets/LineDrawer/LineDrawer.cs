@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace LineDrawer
+namespace AALineDrawer
 {
     /// <summary>
     /// This class is a simple way to draw an anti-aliased screen-space-constant line with colour and width varying across. It's not a Gizmo or Handle so it will work just fine in builds.
@@ -11,13 +11,13 @@ namespace LineDrawer
     {
         #region Constants/Fields
 
-        private const string MATERIAL_PATH = "LineDrawer/Material_LineDrawer";
+        private const string MATERIAL_PATH = "Material_LineDrawer";
 
         private readonly static int POINT_DATA_BUFFER = Shader.PropertyToID("_PointDataBuffer");
         private readonly static int POINT_COUNT = Shader.PropertyToID("_PointCount");
 
         [SerializeField]
-        [HideInInspector]
+        //[HideInInspector]
         private Material m_material;
 
         [SerializeField]
@@ -115,7 +115,7 @@ namespace LineDrawer
 
             if (m_materialPropertyBlock == null)
                 m_materialPropertyBlock = new MaterialPropertyBlock();
-            
+
             m_materialPropertyBlock.SetBuffer(POINT_DATA_BUFFER, m_pointsDataBuffer);
             m_materialPropertyBlock.SetInt(POINT_COUNT, m_points.Count);
 
@@ -239,6 +239,19 @@ namespace LineDrawer
         }
 
         /// <summary>
+        /// Replace the line with a new one. Each new line segment will have the given point data, up to the given length.
+        /// </summary>
+        public void SetPoints(int length, params PointData[] points)
+        {
+            m_points.Clear();
+
+            if (length <= 0)
+                return;
+
+            AddPoints(points, length);
+        }
+
+        /// <summary>
         /// Replace the line with a new one. Each new line segment will have the given point data.
         /// </summary>
         public void SetPoints(IList<PointData> points)
@@ -323,6 +336,17 @@ namespace LineDrawer
         public void AddPoints(IList<PointData> pointData)
         {
             for (int i = 0; i < pointData.Count; i++)
+                m_points.Add(pointData[i]);
+
+            OnPointsChanged();
+        }
+
+        /// <summary>
+        /// Add a number of new points to the line, up to the given length.
+        /// </summary>
+        public void AddPoints(IList<PointData> pointData, int length)
+        {
+            for (int i = 0; i < Mathf.Min(length, pointData.Count); i++)
                 m_points.Add(pointData[i]);
 
             OnPointsChanged();

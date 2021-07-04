@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LineDrawer
+namespace AALineDrawer
 {
     [ExecuteInEditMode]
     public class LineDrawTest : MonoBehaviour

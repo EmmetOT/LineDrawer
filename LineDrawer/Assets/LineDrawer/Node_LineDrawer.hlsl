@@ -17,10 +17,12 @@ float LineSDF(float2 p, float2 a, float2 b, out float t)
     return length(pa - ba * t);
 }
 
-void DrawLine_float(in float2 Position, in float PartialDerivative, out float SignedDistance, out float4 Colour)
+void DrawLine_float(in float2 Position, out float SignedDistance, out float4 Colour)
 {
     SignedDistance = 10000000.0;
     Colour = 0;
+    
+    float partialDerivative = length(fwidth(Position).xy);
     
     for (int i = 0; i < _PointCount - 1; i++)
     {
@@ -29,7 +31,7 @@ void DrawLine_float(in float2 Position, in float PartialDerivative, out float Si
         
         float t;
         float dist = LineSDF(Position, a.Position.xy, b.Position.xy, t);
-        dist -= PartialDerivative * lerp(a.Width, b.Width, t);
+        dist -= partialDerivative * lerp(a.Width, b.Width, t);
         
         if (dist < SignedDistance)
         {
