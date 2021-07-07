@@ -1,6 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor.Compilation;
+using UnityEditor;
+#endif
+
 namespace AALineDrawer
 {
     /// <summary>
@@ -58,16 +63,39 @@ namespace AALineDrawer
 
         private bool m_initialized = false;
 
+        [SerializeField]
+        [HideInInspector]
+        // this bool is toggled off/on whenever the Unity callbacks OnEnable/OnDisable are called.
+        // note that this doesn't always give the same result as "enabled" because OnEnable/OnDisable are
+        // called during recompiles etc. you can basically read this bool as "is recompiling"
+        private bool m_isEnabled = false;
+
         #endregion
 
         #region Unity Callbacks
 
         private void Reset() => Init();
         private void OnValidate() => Init();
-        private void OnEnable() => Init();
+        private void OnEnable()
+        {
+#if UNITY_EDITOR
+            CompilationPipeline.compilationStarted += OnCompilationStarted;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
+
+            m_isEnabled = true;
+
+            Init();
+        }
 
         private void OnDisable()
         {
+#if UNITY_EDITOR
+            CompilationPipeline.compilationStarted -= OnCompilationStarted;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+#endif
+            m_isEnabled = false;
+
             m_pointsDataBuffer?.Dispose();
 
             DestroyImmediate(m_mesh);
@@ -105,6 +133,9 @@ namespace AALineDrawer
         /// </summary>
         private void OnPointsChanged()
         {
+            if (!m_isEnabled)
+                return;
+
             if (m_pointsDataBuffer == null || !m_pointsDataBuffer.IsValid() || m_points.Count > m_pointsDataBuffer.count)
             {
                 m_pointsDataBuffer?.Dispose();
@@ -464,6 +495,21 @@ namespace AALineDrawer
         }
 
         #endregion
+
+        private void OnCompilationStarted(object param)
+        {
+            m_isEnabled = false;
+
+            m_pointsDataBuffer?.Dispose();
+        }
+
+#if UNITY_EDITOR
+        private void OnPlayModeStateChanged(PlayModeStateChange stateChange)
+        {
+            // this ensures "m_isEnabled" is set to false while transitioning between play modes
+            m_isEnabled = stateChange == PlayModeStateChange.EnteredPlayMode || stateChange == PlayModeStateChange.EnteredEditMode;
+        }
+#endif
 
         #region Mesh Generations Methods
 
